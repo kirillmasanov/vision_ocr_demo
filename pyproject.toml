@@ -1,0 +1,16 @@
+[project]
+name = "vision-ocr-demo"
+version = "0.1.0"
+description = "Demo application for Yandex Vision OCR service"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "python-dotenv",
+    "httpx",
+    "python-multipart",
+    "jinja2",
+]
+
+[tool.uv]
+dev-dependencies = []
