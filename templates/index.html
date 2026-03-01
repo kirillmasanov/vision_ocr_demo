@@ -184,42 +184,121 @@
             letter-spacing: 0.04em;
         }
 
-        .form-select {
+        .model-select-wrap {
+            position: relative;
+        }
+
+        .model-select-trigger {
             width: 100%;
-            padding: 10px 14px;
-            border: 1px solid var(--yc-color-line-generic);
+            padding: 14px 44px 14px 16px;
+            border: 2px solid var(--yc-color-line-generic);
             border-radius: var(--yc-border-radius);
-            font-size: 14px;
+            font-size: 15px;
+            font-weight: 500;
             color: var(--yc-color-text-primary);
-            background: #fff;
+            background: var(--yc-color-base-float);
             cursor: pointer;
-            transition: border-color 0.15s;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            background-size: 12px;
+            transition: all 0.15s ease;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
         }
 
-        .form-select:focus {
-            outline: none;
+        .model-select-trigger:hover {
             border-color: var(--yc-color-base-brand);
-            box-shadow: 0 0 0 3px rgba(49,140,231,0.1);
+            background: #f0f7ff;
         }
 
-        .model-description {
+        .model-select-trigger.open {
+            border-color: var(--yc-color-base-brand);
             background: #f0f7ff;
-            border-left: 3px solid var(--yc-color-base-brand);
-            padding: 12px 16px;
-            border-radius: 0 var(--yc-border-radius) var(--yc-border-radius) 0;
-            font-size: 14px;
-            color: var(--yc-color-text-primary);
-            margin-bottom: 20px;
+            box-shadow: 0 0 0 3px rgba(49,140,231,0.12);
+        }
+
+        .model-select-trigger .placeholder {
+            color: var(--yc-color-text-hint);
+        }
+
+        .model-select-trigger .arrow {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--yc-color-text-secondary);
+            transition: transform 0.2s ease;
+        }
+
+        .model-select-trigger.open .arrow {
+            transform: translateY(-50%) rotate(180deg);
+            color: var(--yc-color-base-brand);
+        }
+
+        .model-select-dropdown {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: calc(100% + 6px);
+            background: var(--yc-color-base-float);
+            border: 2px solid var(--yc-color-line-generic);
+            border-radius: var(--yc-border-radius);
+            box-shadow: var(--yc-shadow-popup);
+            max-height: 320px;
+            overflow-y: auto;
+            z-index: 50;
             display: none;
         }
 
-        .model-description.visible {
+        .model-select-dropdown.open {
             display: block;
+        }
+
+        .model-select-option {
+            padding: 12px 16px;
+            font-size: 14px;
+            color: var(--yc-color-text-primary);
+            cursor: pointer;
+            transition: background 0.1s ease;
+            border-bottom: 1px solid var(--yc-color-line-generic);
+        }
+
+        .model-select-option:last-child {
+            border-bottom: none;
+        }
+
+        .model-select-option:hover {
+            background: var(--yc-color-base-simple-hover);
+        }
+
+        .model-select-option.selected {
+            background: #e8f2ff;
+            color: var(--yc-color-base-brand);
+            font-weight: 500;
+        }
+
+        .model-select-option .option-id {
+            font-family: ui-monospace, monospace;
+            font-size: 13px;
+        }
+
+        .model-select-option .option-desc {
+            font-size: 12px;
+            color: var(--yc-color-text-secondary);
+            margin-top: 4px;
+            line-height: 1.35;
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .form-select {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            width: 0;
+            height: 0;
         }
 
         .samples-grid {
@@ -609,13 +688,16 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="modelSelect">Модель</label>
-                <select id="modelSelect" class="form-select" onchange="onModelChange()">
-                    <option value="">— Выберите модель —</option>
-                </select>
+                <label class="form-label" for="modelSelectTrigger">Модель</label>
+                <div class="model-select-wrap">
+                    <button type="button" class="model-select-trigger" id="modelSelectTrigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="modelSelectTrigger">
+                        <span class="model-select-label" id="modelSelectLabel">— Выберите модель —</span>
+                        <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="model-select-dropdown" id="modelSelectDropdown" role="listbox"></div>
+                    <select id="modelSelect" class="form-select" aria-hidden="true" tabindex="-1"></select>
+                </div>
             </div>
-
-            <div id="modelDescription" class="model-description"></div>
 
             <!-- Samples -->
             <div id="samplesSection" class="hidden">
@@ -706,6 +788,16 @@
         }
         loadModels();
 
+        function closeModelDropdown() {
+            document.getElementById('modelSelectTrigger').classList.remove('open');
+            document.getElementById('modelSelectDropdown').classList.remove('open');
+        }
+
+        function openModelDropdown() {
+            document.getElementById('modelSelectTrigger').classList.add('open');
+            document.getElementById('modelSelectDropdown').classList.add('open');
+        }
+
         function selectMode(mode) {
             currentMode = mode;
             document.querySelectorAll('.mode-btn').forEach(b => {
@@ -715,40 +807,71 @@
             const section = document.getElementById('modelSection');
             section.classList.remove('hidden');
 
+            closeModelDropdown();
+
             const select = document.getElementById('modelSelect');
-            select.innerHTML = '<option value="">— Выберите модель —</option>';
+            const trigger = document.getElementById('modelSelectTrigger');
+            const label = document.getElementById('modelSelectLabel');
+            const dropdown = document.getElementById('modelSelectDropdown');
+
+            select.innerHTML = '';
+            dropdown.innerHTML = '';
+
+            label.textContent = '— Выберите модель —';
+            label.classList.add('placeholder');
 
             const models = mode === 'text' ? modelsData.text : modelsData.template;
             models.forEach(m => {
                 const opt = document.createElement('option');
                 opt.value = m.id;
-                opt.textContent = m.id;
                 select.appendChild(opt);
+
+                const item = document.createElement('div');
+                item.className = 'model-select-option';
+                item.setAttribute('role', 'option');
+                item.dataset.value = m.id;
+                item.innerHTML = '<span class="option-id">' + escapeHtml(m.id) + '</span><span class="option-desc">' + escapeHtml(m.description) + '</span>';
+                item.onclick = (e) => {
+                    e.stopPropagation();
+                    select.value = m.id;
+                    label.textContent = m.id;
+                    label.classList.remove('placeholder');
+                    dropdown.querySelectorAll('.model-select-option').forEach(o => o.classList.remove('selected'));
+                    item.classList.add('selected');
+                    closeModelDropdown();
+                    onModelChange();
+                };
+                dropdown.appendChild(item);
             });
 
-            document.getElementById('modelDescription').classList.remove('visible');
+            trigger.onclick = (e) => {
+                e.stopPropagation();
+                if (dropdown.classList.contains('open')) closeModelDropdown();
+                else {
+                    const val = select.value;
+                    dropdown.querySelectorAll('.model-select-option').forEach(o => {
+                        o.classList.toggle('selected', o.dataset.value === val);
+                    });
+                    openModelDropdown();
+                }
+            };
+
             document.getElementById('samplesSection').classList.add('hidden');
             hideResults();
             resetFileState();
             updateRecognizeBtn();
         }
 
+        document.addEventListener('click', () => closeModelDropdown());
+        document.getElementById('modelSelectDropdown')?.addEventListener('click', e => e.stopPropagation());
+
         async function onModelChange() {
             const model = document.getElementById('modelSelect').value;
-            const descEl = document.getElementById('modelDescription');
 
             if (!model) {
-                descEl.classList.remove('visible');
                 document.getElementById('samplesSection').classList.add('hidden');
                 updateRecognizeBtn();
                 return;
-            }
-
-            const models = currentMode === 'text' ? modelsData.text : modelsData.template;
-            const found = models.find(m => m.id === model);
-            if (found) {
-                descEl.textContent = found.description;
-                descEl.classList.add('visible');
             }
 
             await loadSamples(model);
