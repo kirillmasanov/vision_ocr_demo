@@ -540,6 +540,34 @@
             overflow-y: auto;
         }
 
+        .plates-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            background: #fafafa;
+            border: 1px solid var(--yc-color-line-generic);
+            border-radius: var(--yc-border-radius);
+            overflow: hidden;
+        }
+
+        .plates-list li {
+            padding: 12px 16px;
+            font-size: 15px;
+            font-weight: 500;
+            font-family: ui-monospace, monospace;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--yc-color-line-generic);
+        }
+
+        .plates-list li:last-child {
+            border-bottom: none;
+        }
+
+        .plates-list li.plates-empty {
+            color: var(--yc-color-text-hint);
+            font-weight: normal;
+        }
+
         .entities-table {
             width: 100%;
             border-collapse: collapse;
@@ -745,6 +773,7 @@
                 <div class="result-tabs">
                     <button class="result-tab active" id="formattedTab" onclick="switchTab('formatted')">Результат</button>
                     <button class="result-tab" onclick="switchTab('entities')" id="entitiesTabBtn" style="display:none">Поля документа</button>
+                    <button class="result-tab" onclick="switchTab('plates')" id="platesTab" style="display:none">Распознанные номера</button>
                     <button class="result-tab" onclick="switchTab('json')" id="jsonTab">JSON</button>
                 </div>
 
@@ -759,6 +788,10 @@
                         </thead>
                         <tbody id="entitiesBody"></tbody>
                     </table>
+                </div>
+
+                <div id="panelPlates" class="result-panel">
+                    <ul class="plates-list" id="platesList"></ul>
                 </div>
 
                 <div id="panelJson" class="result-panel">
@@ -1068,13 +1101,36 @@
             // JSON
             document.getElementById('resultJson').textContent = JSON.stringify(data, null, 2);
 
+            // Распознанные номера (для модели license-plates)
+            const platesList = document.getElementById('platesList');
+            const platesTab = document.getElementById('platesTab');
+            const blocks = textAnnotation.blocks || [];
+            let plates = [];
+            if (model === 'license-plates') {
+                blocks.forEach(block => {
+                    (block.lines || []).forEach(line => {
+                        const t = (line.text || '').trim();
+                        if (t) plates.push(t);
+                    });
+                });
+                if (plates.length === 0 && fullText) {
+                    plates = fullText.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+                }
+                platesList.innerHTML = plates.map(p => '<li>' + escapeHtml(p) + '</li>').join('') || '<li class="plates-empty">Номера не распознаны</li>';
+                platesTab.style.display = '';
+            } else {
+                platesTab.style.display = 'none';
+            }
+
             const templateModels = ['passport', 'driver-license-front', 'driver-license-back', 'vehicle-registration-front', 'vehicle-registration-back', 'license-plates'];
             const isTemplateModel = templateModels.includes(model);
             const formattedTab = document.getElementById('formattedTab');
 
             if (isTemplateModel) {
                 formattedTab.style.display = 'none';
-                if (entities.length > 0) {
+                if (model === 'license-plates') {
+                    switchTab('plates');
+                } else if (entities.length > 0) {
                     switchTab('entities');
                 } else {
                     switchTab('json');
@@ -1101,6 +1157,9 @@
             } else if (tab === 'entities') {
                 document.getElementById('entitiesTabBtn').classList.add('active');
                 document.getElementById('panelEntities').classList.add('active');
+            } else if (tab === 'plates') {
+                document.getElementById('platesTab').classList.add('active');
+                document.getElementById('panelPlates').classList.add('active');
             } else {
                 document.getElementById('jsonTab').classList.add('active');
                 document.getElementById('panelJson').classList.add('active');
