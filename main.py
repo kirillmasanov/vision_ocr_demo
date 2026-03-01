@@ -117,7 +117,7 @@ async def recognize(
         raise HTTPException(status_code=400, detail="Unknown model")
 
     language_codes = ["*"]
-    if model in ("handwritten", "table"):
+    if model in ("handwritten", "table", "markdown", "math-markdown"):
         language_codes = ["ru", "en"]
     elif model == "license-plates":
         language_codes = ["ru"]
