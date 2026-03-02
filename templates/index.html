@@ -4,23 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yandex Vision OCR — Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --yc-color-base-background: #ffffff;
-            --yc-color-base-brand: #318CE7;
-            --yc-color-base-brand-hover: #2672c0;
+            --yc-color-base-brand: #0077FF;
+            --yc-color-base-brand-hover: #0066DD;
+            --yc-color-base-brand-light: #E6F1FF;
             --yc-color-base-float: #ffffff;
-            --yc-color-line-generic: #e5e5e5;
-            --yc-color-text-primary: #1a1a1a;
-            --yc-color-text-secondary: #6b7280;
-            --yc-color-text-hint: #9ca3af;
-            --yc-color-base-simple-hover: #f3f4f6;
-            --yc-color-base-positive: #3bc935;
-            --yc-color-base-warning: #ff9900;
-            --yc-color-base-danger: #ff4444;
+            --yc-color-line-generic: #E2E5E9;
+            --yc-color-line-generic-hover: #C8CDD3;
+            --yc-color-text-primary: #1B202B;
+            --yc-color-text-secondary: #5C6470;
+            --yc-color-text-hint: #8B909A;
+            --yc-color-base-simple-hover: #F2F3F5;
+            --yc-color-base-positive: #00985F;
+            --yc-color-base-positive-light: #E6F7F1;
+            --yc-color-base-warning: #FF8C00;
+            --yc-color-base-danger: #E84D4D;
+            --yc-color-base-danger-light: #FEECEC;
+            --yc-color-bg-base: #F5F6F8;
+            --yc-border-radius-s: 6px;
             --yc-border-radius: 8px;
-            --yc-shadow-card: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
-            --yc-shadow-popup: 0 4px 24px rgba(0,0,0,0.12);
+            --yc-border-radius-l: 12px;
+            --yc-shadow-card: 0 1px 2px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+            --yc-shadow-popup: 0 4px 24px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
         }
 
         * {
@@ -30,23 +40,26 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: #f7f8fa;
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--yc-color-bg-base);
             color: var(--yc-color-text-primary);
             line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .header {
-            background: #1a1a1a;
+            background: #1B202B;
             color: #fff;
             padding: 0 32px;
-            height: 56px;
+            height: 52px;
             display: flex;
             align-items: center;
             gap: 16px;
             position: sticky;
             top: 0;
             z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
         }
 
         .header-logo {
@@ -58,39 +71,58 @@
         }
 
         .header-logo svg {
-            width: 28px;
-            height: 28px;
+            width: 24px;
+            height: 24px;
         }
 
         .header-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             letter-spacing: -0.01em;
         }
 
+        .header-divider {
+            width: 1px;
+            height: 20px;
+            background: rgba(255,255,255,0.15);
+        }
+
+        .header-badge {
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.6);
+            background: rgba(255,255,255,0.08);
+            padding: 2px 8px;
+            border-radius: 4px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
         .header-subtitle {
             font-size: 13px;
-            color: #999;
+            color: rgba(255,255,255,0.45);
             margin-left: auto;
         }
 
         .container {
-            max-width: 960px;
+            max-width: 920px;
             margin: 0 auto;
-            padding: 32px 24px;
+            padding: 36px 24px 48px;
         }
 
         .page-title {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 700;
             margin-bottom: 8px;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.025em;
+            color: var(--yc-color-text-primary);
         }
 
         .page-description {
             color: var(--yc-color-text-secondary);
-            font-size: 15px;
+            font-size: 14px;
             margin-bottom: 32px;
+            line-height: 1.6;
         }
 
         .page-description a {
@@ -112,20 +144,21 @@
 
         .mode-selector {
             display: flex;
-            gap: 16px;
-            margin-bottom: 28px;
+            gap: 12px;
+            margin-bottom: 24px;
         }
 
         .mode-btn {
             flex: 1;
-            padding: 20px 24px;
-            border: 2px solid var(--yc-color-line-generic);
-            border-radius: var(--yc-border-radius);
+            padding: 16px 20px;
+            border: 1.5px solid var(--yc-color-line-generic);
+            border-radius: var(--yc-border-radius-l);
             background: var(--yc-color-base-float);
             cursor: pointer;
             transition: all 0.15s ease;
             text-align: left;
-            font-size: 15px;
+            font-family: inherit;
+            font-size: 14px;
             font-weight: 500;
             color: var(--yc-color-text-primary);
             display: flex;
@@ -135,19 +168,21 @@
 
         .mode-btn:hover {
             border-color: var(--yc-color-base-brand);
-            background: #f0f7ff;
+            background: var(--yc-color-base-brand-light);
+            box-shadow: 0 0 0 1px var(--yc-color-base-brand);
         }
 
         .mode-btn.active {
             border-color: var(--yc-color-base-brand);
-            background: #e8f2ff;
+            background: var(--yc-color-base-brand-light);
             color: var(--yc-color-base-brand);
+            box-shadow: 0 0 0 1px var(--yc-color-base-brand);
         }
 
         .mode-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--yc-border-radius-s);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -155,36 +190,36 @@
         }
 
         .mode-btn:first-child .mode-icon {
-            background: #e8f2ff;
+            background: var(--yc-color-base-brand-light);
             color: var(--yc-color-base-brand);
         }
 
         .mode-btn:last-child .mode-icon {
-            background: #fff3e0;
-            color: #e67e00;
+            background: #FFF3E0;
+            color: #E67E00;
         }
 
-        .mode-btn.active:first-child .mode-icon,
-        .mode-btn.active:last-child .mode-icon {
+        .mode-btn.active .mode-icon {
             background: var(--yc-color-base-brand);
             color: #fff;
         }
 
         .card {
             background: var(--yc-color-base-float);
-            border-radius: var(--yc-border-radius);
-            box-shadow: var(--yc-shadow-card);
+            border-radius: var(--yc-border-radius-l);
+            border: 1px solid var(--yc-color-line-generic);
             padding: 24px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .card-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             margin-bottom: 16px;
             display: flex;
             align-items: center;
             gap: 8px;
+            color: var(--yc-color-text-primary);
         }
 
         .form-group {
@@ -193,12 +228,12 @@
 
         .form-label {
             display: block;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--yc-color-text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--yc-color-text-hint);
             margin-bottom: 6px;
             text-transform: uppercase;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.05em;
         }
 
         .model-select-wrap {
@@ -207,10 +242,11 @@
 
         .model-select-trigger {
             width: 100%;
-            padding: 14px 44px 14px 16px;
-            border: 2px solid var(--yc-color-line-generic);
+            padding: 12px 40px 12px 14px;
+            border: 1.5px solid var(--yc-color-line-generic);
             border-radius: var(--yc-border-radius);
-            font-size: 15px;
+            font-family: inherit;
+            font-size: 14px;
             font-weight: 500;
             color: var(--yc-color-text-primary);
             background: var(--yc-color-base-float);
@@ -224,14 +260,12 @@
         }
 
         .model-select-trigger:hover {
-            border-color: var(--yc-color-base-brand);
-            background: #f0f7ff;
+            border-color: var(--yc-color-line-generic-hover);
         }
 
         .model-select-trigger.open {
             border-color: var(--yc-color-base-brand);
-            background: #f0f7ff;
-            box-shadow: 0 0 0 3px rgba(49,140,231,0.12);
+            box-shadow: 0 0 0 2px rgba(0,119,255,0.16);
         }
 
         .model-select-trigger .placeholder {
@@ -256,9 +290,9 @@
             position: absolute;
             left: 0;
             right: 0;
-            top: calc(100% + 6px);
+            top: calc(100% + 4px);
             background: var(--yc-color-base-float);
-            border: 2px solid var(--yc-color-line-generic);
+            border: 1px solid var(--yc-color-line-generic);
             border-radius: var(--yc-border-radius);
             box-shadow: var(--yc-shadow-popup);
             max-height: 320px;
@@ -289,7 +323,7 @@
         }
 
         .model-select-option.selected {
-            background: #e8f2ff;
+            background: var(--yc-color-base-brand-light);
             color: var(--yc-color-base-brand);
             font-weight: 500;
         }
@@ -326,7 +360,7 @@
         }
 
         .sample-item {
-            border: 2px solid var(--yc-color-line-generic);
+            border: 1.5px solid var(--yc-color-line-generic);
             border-radius: var(--yc-border-radius);
             overflow: hidden;
             cursor: pointer;
@@ -335,19 +369,19 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #fafafa;
+            background: var(--yc-color-base-float);
             position: relative;
         }
 
         .sample-item:hover {
-            border-color: var(--yc-color-base-brand);
-            transform: translateY(-2px);
+            border-color: var(--yc-color-line-generic-hover);
+            transform: translateY(-1px);
             box-shadow: var(--yc-shadow-card);
         }
 
         .sample-item.selected {
             border-color: var(--yc-color-base-brand);
-            box-shadow: 0 0 0 3px rgba(49,140,231,0.2);
+            box-shadow: 0 0 0 2px rgba(0,119,255,0.2);
         }
 
         .sample-item img {
@@ -378,24 +412,24 @@
         }
 
         .upload-area {
-            border: 2px dashed var(--yc-color-line-generic);
-            border-radius: var(--yc-border-radius);
-            padding: 24px;
+            border: 1.5px dashed var(--yc-color-line-generic);
+            border-radius: var(--yc-border-radius-l);
+            padding: 28px 24px;
             text-align: center;
             cursor: pointer;
             transition: all 0.15s ease;
-            background: #fafafa;
+            background: var(--yc-color-base-float);
             margin-bottom: 20px;
         }
 
         .upload-area:hover {
             border-color: var(--yc-color-base-brand);
-            background: #f0f7ff;
+            background: var(--yc-color-base-brand-light);
         }
 
         .upload-area.has-file {
             border-color: var(--yc-color-base-positive);
-            background: #f0fff0;
+            background: var(--yc-color-base-positive-light);
         }
 
         .upload-icon {
@@ -437,12 +471,13 @@
 
         .btn-recognize {
             width: 100%;
-            padding: 14px 24px;
+            padding: 12px 24px;
             background: var(--yc-color-base-brand);
             color: #fff;
             border: none;
             border-radius: var(--yc-border-radius);
-            font-size: 15px;
+            font-family: inherit;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.15s ease;
@@ -454,10 +489,11 @@
 
         .btn-recognize:hover:not(:disabled) {
             background: var(--yc-color-base-brand-hover);
+            box-shadow: 0 2px 8px rgba(0,119,255,0.25);
         }
 
         .btn-recognize:disabled {
-            opacity: 0.5;
+            opacity: 0.4;
             cursor: not-allowed;
         }
 
@@ -494,18 +530,19 @@
         .result-tabs {
             display: flex;
             gap: 0;
-            border-bottom: 2px solid var(--yc-color-line-generic);
+            border-bottom: 1px solid var(--yc-color-line-generic);
             margin-bottom: 16px;
         }
 
         .result-tab {
-            padding: 10px 20px;
-            font-size: 14px;
+            padding: 10px 16px;
+            font-family: inherit;
+            font-size: 13px;
             font-weight: 500;
-            color: var(--yc-color-text-secondary);
+            color: var(--yc-color-text-hint);
             cursor: pointer;
             border-bottom: 2px solid transparent;
-            margin-bottom: -2px;
+            margin-bottom: -1px;
             transition: all 0.15s;
             background: none;
             border-top: none;
@@ -531,11 +568,11 @@
         }
 
         .result-text {
-            background: #fafafa;
+            background: var(--yc-color-bg-base);
             border: 1px solid var(--yc-color-line-generic);
             border-radius: var(--yc-border-radius);
-            padding: 20px;
-            font-size: 14px;
+            padding: 16px 20px;
+            font-size: 13.5px;
             line-height: 1.7;
             white-space: pre-wrap;
             word-break: break-word;
@@ -544,11 +581,11 @@
         }
 
         .result-json {
-            background: #1a1a1a;
-            color: #e5e5e5;
+            background: #1B202B;
+            color: #D5D9DE;
             border-radius: var(--yc-border-radius);
-            padding: 20px;
-            font-family: "SF Mono", "Fira Code", "Fira Mono", monospace;
+            padding: 16px 20px;
+            font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
             font-size: 12px;
             line-height: 1.6;
             white-space: pre-wrap;
@@ -594,9 +631,13 @@
         .entities-table th {
             text-align: left;
             padding: 10px 12px;
-            background: #f3f4f6;
+            background: var(--yc-color-bg-base);
             font-weight: 600;
-            border-bottom: 2px solid var(--yc-color-line-generic);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--yc-color-text-hint);
+            border-bottom: 1px solid var(--yc-color-line-generic);
         }
 
         .entities-table td {
@@ -609,11 +650,11 @@
         }
 
         .error-message {
-            background: #fff0f0;
+            background: var(--yc-color-base-danger-light);
             border-left: 3px solid var(--yc-color-base-danger);
             padding: 12px 16px;
             border-radius: 0 var(--yc-border-radius) var(--yc-border-radius) 0;
-            font-size: 14px;
+            font-size: 13px;
             color: var(--yc-color-base-danger);
             display: none;
         }
@@ -662,15 +703,16 @@
 
         .image-preview {
             max-width: 100%;
-            max-height: 300px;
+            max-height: 280px;
             border-radius: var(--yc-border-radius);
             border: 1px solid var(--yc-color-line-generic);
             cursor: zoom-in;
-            transition: opacity 0.15s;
+            transition: all 0.15s;
         }
 
         .image-preview:hover {
-            opacity: 0.85;
+            opacity: 0.9;
+            box-shadow: var(--yc-shadow-card);
         }
 
         .lightbox {
@@ -719,6 +761,40 @@
             background: rgba(255, 255, 255, 0.3);
         }
 
+        .footer {
+            border-top: 1px solid var(--yc-color-line-generic);
+            padding: 20px 32px;
+            margin-top: 16px;
+        }
+
+        .footer-inner {
+            max-width: 920px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--yc-color-text-hint);
+        }
+
+        .footer-brand {
+            font-weight: 500;
+        }
+
+        .footer-sep {
+            color: var(--yc-color-line-generic);
+        }
+
+        .footer a {
+            color: var(--yc-color-text-hint);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .footer a:hover {
+            color: var(--yc-color-base-brand);
+        }
+
         @media (max-width: 640px) {
             .mode-selector {
                 flex-direction: column;
@@ -728,6 +804,16 @@
             }
             .samples-grid {
                 grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            }
+            .header {
+                padding: 0 16px;
+            }
+            .header-subtitle {
+                display: none;
+            }
+            .footer-inner {
+                flex-wrap: wrap;
+                justify-content: center;
             }
         }
     </style>
@@ -740,12 +826,14 @@
             </svg>
             <span class="header-title">Yandex Vision OCR</span>
         </a>
+        <div class="header-divider"></div>
+        <span class="header-badge">Demo</span>
         <span class="header-subtitle">Демонстрация сервиса распознавания текста</span>
     </div>
 
     <div class="container">
         <h1 class="page-title">Распознавание текста</h1>
-        <p class="page-description">Выберите тип модели, загрузите изображение и получите результат распознавания. <a href="https://yandex.cloud/ru/docs/vision/concepts/ocr/" target="_blank" rel="noopener">Документация сервиса<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a></p>
+        <p class="page-description">Выберите тип модели, загрузите изображение и получите результат распознавания</p>
 
         <!-- Step 1: Mode selection -->
         <div class="mode-selector">
@@ -869,6 +957,18 @@
             </div>
         </div>
     </div>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <span class="footer-brand">Yandex Vision OCR Demo</span>
+            <span class="footer-sep">&middot;</span>
+            <a href="https://yandex.cloud/ru/docs/vision/concepts/ocr/" target="_blank" rel="noopener">Документация</a>
+            <span class="footer-sep">&middot;</span>
+            <a href="https://yandex.cloud/ru/docs/vision/ocr/api-ref/" target="_blank" rel="noopener">API Reference</a>
+            <span class="footer-sep">&middot;</span>
+            <a href="https://yandex.cloud/ru/docs/vision/pricing" target="_blank" rel="noopener">Правила тарификации</a>
+        </div>
+    </footer>
 
     <div class="lightbox" id="lightbox" onclick="closeLightbox()">
         <button class="lightbox-close" aria-label="Закрыть">&times;</button>
