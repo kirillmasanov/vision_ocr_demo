@@ -82,7 +82,7 @@ async def get_samples(model: str):
         if f.is_file() and f.suffix.lower() in allowed_ext:
             samples.append({
                 "name": f.name,
-                "url": f"/static/{model}/{f.name}",
+                "url": f"static/{model}/{f.name}",
             })
     return {"samples": samples}
 
@@ -100,7 +100,7 @@ async def recognize(
         content_bytes = await file.read()
         suffix = Path(file.filename or "image.jpg").suffix.lower()
     elif sample_path:
-        rel_path = sample_path.removeprefix("/static/")
+        rel_path = sample_path.removeprefix("/static/").removeprefix("static/")
         sample_file = STATIC_DIR / rel_path
         if not sample_file.exists() or not sample_file.is_file():
             raise HTTPException(status_code=404, detail="Sample file not found")

@@ -820,7 +820,7 @@
 </head>
 <body>
     <div class="header">
-        <a class="header-logo" href="/">
+        <a class="header-logo" href="./">
             <svg viewBox="0 0 24 24" fill="none">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
@@ -982,7 +982,7 @@
         let uploadedFile = null;
 
         async function loadModels() {
-            const resp = await fetch('/api/models');
+            const resp = await fetch('api/models');
             modelsData = await resp.json();
         }
         loadModels();
@@ -1087,7 +1087,7 @@
             section.classList.remove('hidden');
             grid.innerHTML = '';
 
-            const resp = await fetch(`/api/samples/${model}`);
+            const resp = await fetch(`api/samples/${model}`);
             const data = await resp.json();
 
             if (data.samples.length === 0) {
@@ -1219,7 +1219,7 @@
             }
 
             try {
-                const resp = await fetch('/api/recognize', { method: 'POST', body: formData });
+                const resp = await fetch('api/recognize', { method: 'POST', body: formData });
                 const data = await resp.json();
 
                 if (!resp.ok) {
