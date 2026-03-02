@@ -45,7 +45,7 @@ MIME_MAP = {
     ".jpg": "JPEG",
     ".jpeg": "JPEG",
     ".png": "PNG",
-    ".pdf": "PDF",
+    ".pdf": "application/pdf",
 }
 
 

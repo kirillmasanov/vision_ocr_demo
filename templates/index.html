@@ -93,6 +93,23 @@
             margin-bottom: 32px;
         }
 
+        .page-description a {
+            color: var(--yc-color-base-brand);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.15s;
+        }
+
+        .page-description a:hover {
+            color: var(--yc-color-base-brand-hover);
+            text-decoration: underline;
+        }
+
+        .page-description a svg {
+            vertical-align: middle;
+            margin-left: 2px;
+        }
+
         .mode-selector {
             display: flex;
             gap: 16px;
@@ -728,7 +745,7 @@
 
     <div class="container">
         <h1 class="page-title">Распознавание текста</h1>
-        <p class="page-description">Выберите тип модели, загрузите изображение и получите результат распознавания</p>
+        <p class="page-description">Выберите тип модели, загрузите изображение и получите результат распознавания. <a href="https://yandex.cloud/ru/docs/vision/concepts/ocr/" target="_blank" rel="noopener">Документация сервиса<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a></p>
 
         <!-- Step 1: Mode selection -->
         <div class="mode-selector">
