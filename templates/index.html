@@ -239,6 +239,37 @@
             border-color: transparent !important;
         }
 
+        /* Zoom button on sample thumbnails */
+        .sample-zoom {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.75);
+            width: 34px;
+            height: 34px;
+            background: rgba(0, 0, 0, 0.52);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            z-index: 3;
+            padding: 0;
+        }
+
+        .sample-item:hover .sample-zoom {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .sample-zoom:hover {
+            background: rgba(0, 0, 0, 0.72);
+        }
+
         /* Page navigation for multi-page PDFs */
         .page-nav {
             display: flex;
@@ -534,7 +565,8 @@
 
         .sample-item.selected {
             border-color: var(--yc-color-base-brand);
-            box-shadow: 0 0 0 2px rgba(0,119,255,0.2);
+            border-width: 2.5px;
+            box-shadow: 0 0 0 3px rgba(0,119,255,0.18);
         }
 
         .sample-item img {
@@ -1439,6 +1471,12 @@
                         item.innerHTML = `
                             <img src="${s.url}" alt="${s.name}" loading="lazy">
                             <div class="sample-name">${s.name}</div>`;
+                        const zoomBtn = document.createElement('button');
+                        zoomBtn.className = 'sample-zoom';
+                        zoomBtn.title = 'Предпросмотр';
+                        zoomBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
+                        zoomBtn.onclick = (e) => { e.stopPropagation(); openLightbox(s.url); };
+                        item.appendChild(zoomBtn);
                     }
                     grid.appendChild(item);
                 });
