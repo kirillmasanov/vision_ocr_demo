@@ -10,10 +10,10 @@
 
 * **Распознавание текста** — печатный, многоколоночный, рукописный текст, таблицы, Markdown, математические формулы
 * **Шаблонные документы** — паспорта, водительские удостоверения, СТС, автомобильные номера
-* **Тестовые примеры** — готовые изображения для каждой модели
-* **Загрузка файлов** — свои изображения (JPEG, PNG) и PDF с поддержкой drag & drop
-* **Просмотр результатов** — распознанный текст, поля документа, распознанные номера, сырой JSON
-* **Лайтбокс** — увеличение изображений по клику
+* **Многостраничный PDF** — асинхронное распознавание до 200 страниц с постраничной навигацией
+* **Тестовые примеры** — готовые изображения для каждой модели с предпросмотром по клику на лупу
+* **Загрузка файлов** — JPEG, PNG, PDF до 10 МБ с поддержкой drag & drop
+* **Просмотр результатов** — распознанный текст, поля документа, распознанные номера, сырой JSON с кнопкой копирования
 
 ## Структура проекта
 
@@ -161,10 +161,17 @@ curl -X POST http://localhost:8000/api/recognize \
 
 ### Поток данных
 
-1. Пользователь выбирает модель и изображение (тестовое или своё)
-2. Изображение кодируется в Base64 и отправляется в Yandex Vision OCR API
-3. API возвращает результат: распознанный текст, координаты блоков, поля документа
-4. Результат отображается в веб-интерфейсе: текст, таблица полей или список номеров + сырой JSON
+**Синхронный режим** (изображения и одностраничные PDF):
+1. Пользователь выбирает модель и файл
+2. Файл кодируется в Base64 и отправляется на `POST /api/recognize`
+3. Backend проксирует запрос в `recognizeText` Yandex Vision OCR API
+4. Результат отображается: текст, таблица полей или список номеров + сырой JSON
+
+**Асинхронный режим** (многостраничные PDF + текстовые модели):
+1. Файл отправляется на `POST /api/recognize-async`
+2. Backend передаёт его в `recognizeTextAsync` и возвращает `operation_id`
+3. Фронтенд каждые 2 секунды опрашивает `GET /api/recognize-status?operation_id=...`
+4. По завершении результат отображается постранично с навигацией
 
 ## Endpoints
 
@@ -174,7 +181,9 @@ curl -X POST http://localhost:8000/api/recognize \
 | GET | `/api/health` | Health check |
 | GET | `/api/models` | Список доступных моделей |
 | GET | `/api/samples/{model}` | Тестовые изображения для модели |
-| POST | `/api/recognize` | Распознавание изображения |
+| POST | `/api/recognize` | Синхронное распознавание (JPEG, PNG, PDF) |
+| POST | `/api/recognize-async` | Асинхронная отправка многостраничного PDF |
+| GET | `/api/recognize-status` | Проверка статуса и получение результата (`?operation_id=`) |
 
 ## Добавление тестовых изображений
 
@@ -194,6 +203,8 @@ static/page/my_image.jpg
 
 ## Документация
 
-* [Yandex Vision OCR — Обзор сервиса](https://yandex.cloud/ru/docs/vision/concepts/ocr/)
-* [Распознавание шаблонных документов](https://yandex.cloud/ru/docs/vision/concepts/ocr/template-recognition)
-* [OCR API — Справочник](https://yandex.cloud/ru/docs/vision/ocr/api-ref/)
+* [Yandex Vision OCR — Обзор сервиса](https://aistudio.yandex.ru/docs/ru/vision/concepts/ocr/)
+* [Распознавание шаблонных документов](https://aistudio.yandex.ru/docs/ru/vision/concepts/ocr/template-recognition.html)
+* [OCR API — Справочник](https://aistudio.yandex.ru/docs/ru/vision/ocr/api-ref/)
+* [Квоты и лимиты](https://aistudio.yandex.ru/docs/ru/vision/concepts/limits.html)
+* [Правила тарификации](https://aistudio.yandex.ru/docs/ru/vision/pricing.html)
