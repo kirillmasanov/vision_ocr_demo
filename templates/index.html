@@ -875,29 +875,6 @@
             background: var(--yc-color-line-generic);
         }
 
-        .image-preview-container {
-            display: none;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .image-preview-container.visible {
-            display: block;
-        }
-
-        .image-preview {
-            max-width: 100%;
-            max-height: 280px;
-            border-radius: var(--yc-border-radius);
-            border: 1px solid var(--yc-color-line-generic);
-            cursor: zoom-in;
-            transition: all 0.15s;
-        }
-
-        .image-preview:hover {
-            opacity: 0.9;
-            box-shadow: var(--yc-shadow-card);
-        }
 
         .lightbox {
             display: none;
@@ -1186,10 +1163,6 @@
                         </div>
                     </div>
                     <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.pdf" style="display:none" onchange="onFileSelected(event)">
-
-                    <div id="imagePreview" class="image-preview-container">
-                        <img id="previewImg" class="image-preview" alt="Preview">
-                    </div>
 
                     <button class="btn-recognize" id="btnRecognize" onclick="recognize()" disabled>
                         <div class="spinner"></div>
@@ -1491,15 +1464,6 @@
             document.getElementById('uploadArea').classList.remove('has-file');
             document.getElementById('fileInput').value = '';
 
-            const preview = document.getElementById('imagePreview');
-            const previewImg = document.getElementById('previewImg');
-            if (!sample.name.toLowerCase().endsWith('.pdf')) {
-                previewImg.src = sample.url;
-                preview.classList.add('visible');
-            } else {
-                preview.classList.remove('visible');
-            }
-
             updateAsyncNotice();
             hideResults();
             updateRecognizeBtn();
@@ -1516,19 +1480,6 @@
             document.getElementById('uploadFileText').textContent = file.name;
             document.getElementById('uploadFilename').classList.add('visible');
             document.getElementById('uploadArea').classList.add('has-file');
-
-            const preview = document.getElementById('imagePreview');
-            const previewImg = document.getElementById('previewImg');
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    previewImg.src = e.target.result;
-                    preview.classList.add('visible');
-                };
-                reader.readAsDataURL(file);
-            } else {
-                preview.classList.remove('visible');
-            }
 
             updateAsyncNotice();
             hideResults();
@@ -1554,7 +1505,6 @@
             document.getElementById('fileInput').value = '';
             document.getElementById('uploadFilename').classList.remove('visible');
             document.getElementById('uploadArea').classList.remove('has-file');
-            document.getElementById('imagePreview').classList.remove('visible');
             document.getElementById('asyncNotice').classList.remove('visible');
         }
 
@@ -1875,10 +1825,6 @@
             lb.classList.remove('open');
             document.body.style.overflow = '';
         }
-
-        document.getElementById('previewImg').addEventListener('click', function () {
-            if (this.src) openLightbox(this.src);
-        });
 
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') closeLightbox();
