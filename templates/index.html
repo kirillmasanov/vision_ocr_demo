@@ -795,6 +795,48 @@
             color: var(--yc-color-base-brand);
         }
 
+        .async-notice {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--yc-color-base-brand);
+            background: var(--yc-color-base-brand-light);
+            border: 1px solid rgba(0,119,255,0.2);
+            border-radius: var(--yc-border-radius-s);
+            padding: 8px 12px;
+            margin-bottom: 16px;
+        }
+
+        .async-notice.visible {
+            display: flex;
+        }
+
+        .recognize-status {
+            display: none;
+            font-size: 13px;
+            color: var(--yc-color-text-secondary);
+            text-align: center;
+            padding: 8px 0 0;
+        }
+
+        .recognize-status.visible {
+            display: block;
+        }
+
+        .result-page-header {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--yc-color-text-hint);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin: 12px 0 4px;
+        }
+
+        .result-page-header:first-child {
+            margin-top: 0;
+        }
+
         @media (max-width: 640px) {
             .mode-selector {
                 flex-direction: column;
@@ -887,6 +929,11 @@
 
             <div class="or-divider">или загрузите свой файл</div>
 
+            <div id="asyncNotice" class="async-notice">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Многостраничный PDF распознаётся асинхронно — до 200 страниц, результат за несколько секунд
+            </div>
+
             <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
                 <div class="upload-icon">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -896,7 +943,7 @@
                     </svg>
                 </div>
                 <div class="upload-text"><strong>Нажмите для загрузки</strong> или перетащите файл сюда</div>
-                <div class="upload-hint">JPEG, PNG или PDF (макс. 1 МБ)</div>
+                <div class="upload-hint">JPEG, PNG или PDF (макс. 10 МБ)</div>
                 <div class="upload-filename" id="uploadFilename">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
                     <span id="uploadFileText"></span>
@@ -912,6 +959,7 @@
                 <div class="spinner"></div>
                 <span class="btn-text">Распознать</span>
             </button>
+            <div id="recognizeStatus" class="recognize-status"></div>
         </div>
 
         <!-- Error -->
@@ -1138,6 +1186,7 @@
                 preview.classList.remove('visible');
             }
 
+            updateAsyncNotice();
             hideResults();
             updateRecognizeBtn();
         }
@@ -1167,6 +1216,7 @@
                 preview.classList.remove('visible');
             }
 
+            updateAsyncNotice();
             hideResults();
             updateRecognizeBtn();
         }
@@ -1191,6 +1241,7 @@
             document.getElementById('uploadFilename').classList.remove('visible');
             document.getElementById('uploadArea').classList.remove('has-file');
             document.getElementById('imagePreview').classList.remove('visible');
+            document.getElementById('asyncNotice').classList.remove('visible');
         }
 
         function updateRecognizeBtn() {
@@ -1199,7 +1250,55 @@
             document.getElementById('btnRecognize').disabled = !(model && hasSource);
         }
 
+        function isAsyncMode() {
+            const model = document.getElementById('modelSelect').value;
+            const isPdfFile = uploadedFile ? uploadedFile.name.toLowerCase().endsWith('.pdf') : false;
+            const isPdfSample = selectedSample ? selectedSample.name.toLowerCase().endsWith('.pdf') : false;
+            const isTextModel = modelsData?.text?.some(m => m.id === model);
+            return (isPdfFile || isPdfSample) && isTextModel;
+        }
+
+        function updateAsyncNotice() {
+            document.getElementById('asyncNotice').classList.toggle('visible', isAsyncMode());
+        }
+
+        function setStatus(text) {
+            const el = document.getElementById('recognizeStatus');
+            el.textContent = text;
+            el.classList.add('visible');
+        }
+
+        function clearStatus() {
+            document.getElementById('recognizeStatus').classList.remove('visible');
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function _buildFormData(model) {
+            const fd = new FormData();
+            fd.append('model', model);
+            if (uploadedFile) fd.append('file', uploadedFile);
+            else if (selectedSample) fd.append('sample_path', selectedSample.url);
+            return fd;
+        }
+
+        function _extractError(data) {
+            const err = data.error;
+            if (typeof err === 'object' && err !== null) return err.message || JSON.stringify(err);
+            return err || data.detail || 'Ошибка распознавания';
+        }
+
         async function recognize() {
+            if (isAsyncMode()) {
+                await _recognizePdfAsync();
+            } else {
+                await _recognizeSync();
+            }
+        }
+
+        async function _recognizeSync() {
             const model = document.getElementById('modelSelect').value;
             const btn = document.getElementById('btnRecognize');
             const errorEl = document.getElementById('errorMessage');
@@ -1209,30 +1308,10 @@
             errorEl.classList.remove('visible');
             hideResults();
 
-            const formData = new FormData();
-            formData.append('model', model);
-
-            if (uploadedFile) {
-                formData.append('file', uploadedFile);
-            } else if (selectedSample) {
-                formData.append('sample_path', selectedSample.url);
-            }
-
             try {
-                const resp = await fetch('api/recognize', { method: 'POST', body: formData });
+                const resp = await fetch('api/recognize', { method: 'POST', body: _buildFormData(model) });
                 const data = await resp.json();
-
-                if (!resp.ok) {
-                    const err = data.error;
-                    let msg;
-                    if (typeof err === 'object' && err !== null) {
-                        msg = err.message || JSON.stringify(err);
-                    } else {
-                        msg = err || data.detail || 'Ошибка распознавания';
-                    }
-                    throw new Error(msg);
-                }
-
+                if (!resp.ok) throw new Error(_extractError(data));
                 showResults(data, model);
             } catch (err) {
                 errorEl.textContent = err.message;
@@ -1241,6 +1320,85 @@
                 btn.classList.remove('loading');
                 updateRecognizeBtn();
             }
+        }
+
+        async function _recognizePdfAsync() {
+            const model = document.getElementById('modelSelect').value;
+            const btn = document.getElementById('btnRecognize');
+            const errorEl = document.getElementById('errorMessage');
+
+            btn.classList.add('loading');
+            btn.disabled = true;
+            errorEl.classList.remove('visible');
+            hideResults();
+            setStatus('Отправка PDF на распознавание...');
+
+            try {
+                const submitResp = await fetch('api/recognize-async', { method: 'POST', body: _buildFormData(model) });
+                const submitData = await submitResp.json();
+                if (!submitResp.ok) throw new Error(_extractError(submitData));
+
+                const operationId = submitData.operation_id;
+                const maxAttempts = 60;
+
+                for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                    setStatus(`Распознавание... ${attempt * 2} сек`);
+                    await sleep(2000);
+
+                    const statusResp = await fetch(`api/recognize-status?operation_id=${encodeURIComponent(operationId)}`);
+                    const statusData = await statusResp.json();
+                    if (!statusResp.ok) throw new Error(_extractError(statusData));
+
+                    if (statusData.done) {
+                        clearStatus();
+                        showResultsMultiPage(statusData.pages, model);
+                        return;
+                    }
+                }
+
+                throw new Error('Превышено время ожидания (2 минуты). Попробуйте ещё раз.');
+            } catch (err) {
+                errorEl.textContent = err.message;
+                errorEl.classList.add('visible');
+            } finally {
+                btn.classList.remove('loading');
+                clearStatus();
+                updateRecognizeBtn();
+            }
+        }
+
+        function showResultsMultiPage(pages, model) {
+            const section = document.getElementById('resultsSection');
+            section.classList.add('visible');
+
+            let combinedText = '';
+            const multiPage = pages.length > 1;
+            pages.forEach((page, idx) => {
+                const ta = page.result?.textAnnotation || page.textAnnotation || {};
+                const text = (ta.markdown || ta.fullText || '').trim();
+                if (multiPage) {
+                    combinedText += `― Страница ${ta.pageNumber || (idx + 1)} ―\n${text}\n\n`;
+                } else {
+                    combinedText = text;
+                }
+            });
+
+            document.getElementById('resultText').textContent = combinedText.trim() || 'Текст не распознан';
+            document.getElementById('entitiesTabBtn').style.display = 'none';
+            document.getElementById('platesTab').style.display = 'none';
+            document.getElementById('formattedTab').style.display = '';
+            document.getElementById('resultJson').textContent = JSON.stringify(pages, null, 2);
+
+            const pageCount = pages.length;
+            document.querySelector('.card-title').innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+                Результат распознавания
+                ${pageCount > 1 ? `<span style="margin-left:8px;font-size:12px;font-weight:500;color:var(--yc-color-base-brand);background:var(--yc-color-base-brand-light);padding:2px 8px;border-radius:4px;">${pageCount} стр.</span>` : ''}`;
+
+            switchTab('formatted');
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         function showResults(data, model) {
