@@ -18,6 +18,15 @@ OCR_API_URL = "https://ocr.api.cloud.yandex.net/ocr/v1/recognizeText"
 OCR_ASYNC_API_URL = "https://ocr.api.cloud.yandex.net/ocr/v1/recognizeTextAsync"
 OCR_GET_RECOGNITION_URL = "https://ocr.api.cloud.yandex.net/ocr/v1/getRecognition"
 
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB — лимит Yandex Vision OCR
+
+SUPPORTED_MIME_TYPES = {
+    ".jpg": "JPEG",
+    ".jpeg": "JPEG",
+    ".png": "PNG",
+    ".pdf": "application/pdf",
+}
+
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 
@@ -44,12 +53,14 @@ TEMPLATE_MODELS = {
     "license-plates": "Распознавание регистрационных номеров автомобилей. Обеспечивает высокую точность распознавания номерных знаков.",
 }
 
-MIME_MAP = {
-    ".jpg": "JPEG",
-    ".jpeg": "JPEG",
-    ".png": "PNG",
-    ".pdf": "application/pdf",
-}
+MIME_MAP = SUPPORTED_MIME_TYPES
+
+
+def _check_credentials() -> None:
+    if not YANDEX_API_KEY:
+        raise HTTPException(status_code=500, detail="YANDEX_API_KEY is not configured")
+    if not YANDEX_FOLDER_ID:
+        raise HTTPException(status_code=500, detail="YANDEX_FOLDER_ID is not configured")
 
 
 def _auth_headers() -> dict:
@@ -72,14 +83,30 @@ def _language_codes(model: str) -> list[str]:
 async def _load_file(
     file: UploadFile | None, sample_path: str | None
 ) -> tuple[bytes, str]:
-    if file and file.size and file.size > 0:
-        return await file.read(), Path(file.filename or "image.jpg").suffix.lower()
+    if file and file.filename:
+        content = await file.read()
+        if not content:
+            raise HTTPException(status_code=400, detail="Uploaded file is empty")
+        if len(content) > MAX_FILE_SIZE:
+            raise HTTPException(status_code=413, detail=f"File too large: max {MAX_FILE_SIZE // 1024 // 1024} MB")
+        suffix = Path(file.filename).suffix.lower()
+        if suffix not in SUPPORTED_MIME_TYPES:
+            raise HTTPException(status_code=415, detail=f"Unsupported format '{suffix}'. Supported: JPEG, PNG, PDF")
+        return content, suffix
     if sample_path:
         rel_path = sample_path.removeprefix("/static/").removeprefix("static/")
-        sample_file = STATIC_DIR / rel_path
+        sample_file = (STATIC_DIR / rel_path).resolve()
+        if not sample_file.is_relative_to(STATIC_DIR.resolve()):
+            raise HTTPException(status_code=400, detail="Invalid sample path")
         if not sample_file.exists() or not sample_file.is_file():
             raise HTTPException(status_code=404, detail="Sample file not found")
-        return sample_file.read_bytes(), sample_file.suffix.lower()
+        content = sample_file.read_bytes()
+        if len(content) > MAX_FILE_SIZE:
+            raise HTTPException(status_code=413, detail=f"File too large: max {MAX_FILE_SIZE // 1024 // 1024} MB")
+        suffix = sample_file.suffix.lower()
+        if suffix not in SUPPORTED_MIME_TYPES:
+            raise HTTPException(status_code=415, detail=f"Unsupported format '{suffix}'. Supported: JPEG, PNG, PDF")
+        return content, suffix
     raise HTTPException(status_code=400, detail="No file provided")
 
 
@@ -120,8 +147,7 @@ async def recognize(
     file: UploadFile | None = File(None),
     sample_path: str | None = Form(None),
 ):
-    if not YANDEX_API_KEY:
-        raise HTTPException(status_code=500, detail="YANDEX_API_KEY is not configured")
+    _check_credentials()
 
     content_bytes, suffix = await _load_file(file, sample_path)
     mime_type = MIME_MAP.get(suffix, "JPEG")
@@ -160,8 +186,7 @@ async def recognize_async(
     file: UploadFile | None = File(None),
     sample_path: str | None = Form(None),
 ):
-    if not YANDEX_API_KEY:
-        raise HTTPException(status_code=500, detail="YANDEX_API_KEY is not configured")
+    _check_credentials()
 
     if model not in TEXT_MODELS:
         raise HTTPException(status_code=400, detail="Async recognition is only supported for text models")
@@ -231,12 +256,13 @@ async def recognize_status(operation_id: str):
     except Exception:
         error_data = {"message": resp.text}
 
-    # Treat as "still processing" for common not-ready error patterns
+    # Yandex returns HTTP 400 with code=9 (FAILED_PRECONDITION) while the operation is still processing
     msg = str(error_data).lower()
-    if any(x in msg for x in ("not ready", "not completed", "in progress", "processing", "failed_precondition")):
-        return {"done": False}
-    # Also treat HTTP 400 generically as "not ready" since that's what Yandex returns for pending ops
-    if resp.status_code == 400:
+    is_pending = (
+        isinstance(error_data, dict) and error_data.get("code") == 9
+        or any(x in msg for x in ("not ready", "not completed", "in progress", "processing"))
+    )
+    if is_pending:
         return {"done": False}
 
     return JSONResponse(status_code=resp.status_code, content={"error": error_data})

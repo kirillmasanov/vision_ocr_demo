@@ -824,6 +824,77 @@
             display: block;
         }
 
+        .btn-cancel {
+            width: 100%;
+            padding: 10px 24px;
+            background: transparent;
+            color: var(--yc-color-base-danger);
+            border: 1.5px solid var(--yc-color-base-danger);
+            border-radius: var(--yc-border-radius);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .btn-cancel.visible {
+            display: block;
+        }
+
+        .btn-cancel:hover {
+            background: var(--yc-color-base-danger-light);
+        }
+
+        .btn-copy {
+            padding: 6px 12px;
+            background: transparent;
+            color: var(--yc-color-text-secondary);
+            border: 1px solid var(--yc-color-line-generic);
+            border-radius: var(--yc-border-radius-s);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-copy:hover {
+            border-color: var(--yc-color-base-brand);
+            color: var(--yc-color-base-brand);
+        }
+
+        .btn-copy.copied {
+            border-color: var(--yc-color-base-positive);
+            color: var(--yc-color-base-positive);
+        }
+
+        .result-card-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .result-card-actions .result-tabs {
+            margin-bottom: 0;
+            flex: 1;
+            border-bottom: none;
+        }
+
+        .result-tabs-wrap {
+            border-bottom: 1px solid var(--yc-color-line-generic);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
         .result-page-header {
             font-size: 11px;
             font-weight: 600;
@@ -960,6 +1031,7 @@
                 <span class="btn-text">Распознать</span>
             </button>
             <div id="recognizeStatus" class="recognize-status"></div>
+            <button class="btn-cancel" id="btnCancel" onclick="cancelAsync()">Отменить</button>
         </div>
 
         <!-- Error -->
@@ -975,11 +1047,17 @@
                     Результат распознавания
                 </div>
 
-                <div class="result-tabs">
-                    <button class="result-tab active" id="formattedTab" onclick="switchTab('formatted')">Результат</button>
-                    <button class="result-tab" onclick="switchTab('entities')" id="entitiesTabBtn" style="display:none">Поля документа</button>
-                    <button class="result-tab" onclick="switchTab('plates')" id="platesTab" style="display:none">Распознанные номера</button>
-                    <button class="result-tab" onclick="switchTab('json')" id="jsonTab">JSON</button>
+                <div class="result-tabs-wrap">
+                    <div class="result-tabs">
+                        <button class="result-tab active" id="formattedTab" onclick="switchTab('formatted')">Результат</button>
+                        <button class="result-tab" onclick="switchTab('entities')" id="entitiesTabBtn" style="display:none">Поля документа</button>
+                        <button class="result-tab" onclick="switchTab('plates')" id="platesTab" style="display:none">Распознанные номера</button>
+                        <button class="result-tab" onclick="switchTab('json')" id="jsonTab">JSON</button>
+                    </div>
+                    <button class="btn-copy" id="btnCopy" onclick="copyResult()">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        Копировать
+                    </button>
                 </div>
 
                 <div id="panelFormatted" class="result-panel active">
@@ -1028,6 +1106,13 @@
         let modelsData = null;
         let selectedSample = null;
         let uploadedFile = null;
+        let asyncCancelled = false;
+
+        const RESULT_CARD_TITLE_HTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            Результат распознавания`;
 
         async function loadModels() {
             const resp = await fetch('api/models');
@@ -1123,6 +1208,7 @@
 
             await loadSamples(model);
             selectedSample = null;
+            updateAsyncNotice();
             hideResults();
             updateRecognizeBtn();
         }
@@ -1322,13 +1408,20 @@
             }
         }
 
+        function cancelAsync() {
+            asyncCancelled = true;
+        }
+
         async function _recognizePdfAsync() {
             const model = document.getElementById('modelSelect').value;
             const btn = document.getElementById('btnRecognize');
+            const btnCancel = document.getElementById('btnCancel');
             const errorEl = document.getElementById('errorMessage');
 
+            asyncCancelled = false;
             btn.classList.add('loading');
             btn.disabled = true;
+            btnCancel.classList.add('visible');
             errorEl.classList.remove('visible');
             hideResults();
             setStatus('Отправка PDF на распознавание...');
@@ -1342,8 +1435,15 @@
                 const maxAttempts = 60;
 
                 for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-                    setStatus(`Распознавание... ${attempt * 2} сек`);
                     await sleep(2000);
+
+                    if (asyncCancelled) {
+                        errorEl.textContent = 'Распознавание отменено.';
+                        errorEl.classList.add('visible');
+                        return;
+                    }
+
+                    setStatus(`Распознавание... ${attempt * 2} сек`);
 
                     const statusResp = await fetch(`api/recognize-status?operation_id=${encodeURIComponent(operationId)}`);
                     const statusData = await statusResp.json();
@@ -1358,10 +1458,13 @@
 
                 throw new Error('Превышено время ожидания (2 минуты). Попробуйте ещё раз.');
             } catch (err) {
-                errorEl.textContent = err.message;
-                errorEl.classList.add('visible');
+                if (!asyncCancelled) {
+                    errorEl.textContent = err.message;
+                    errorEl.classList.add('visible');
+                }
             } finally {
                 btn.classList.remove('loading');
+                btnCancel.classList.remove('visible');
                 clearStatus();
                 updateRecognizeBtn();
             }
@@ -1390,12 +1493,10 @@
             document.getElementById('resultJson').textContent = JSON.stringify(pages, null, 2);
 
             const pageCount = pages.length;
-            document.querySelector('.card-title').innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-                </svg>
-                Результат распознавания
-                ${pageCount > 1 ? `<span style="margin-left:8px;font-size:12px;font-weight:500;color:var(--yc-color-base-brand);background:var(--yc-color-base-brand-light);padding:2px 8px;border-radius:4px;">${pageCount} стр.</span>` : ''}`;
+            const badge = pageCount > 1
+                ? `<span style="margin-left:8px;font-size:12px;font-weight:500;color:var(--yc-color-base-brand);background:var(--yc-color-base-brand-light);padding:2px 8px;border-radius:4px;">${pageCount} стр.</span>`
+                : '';
+            document.querySelector('#resultsSection .card-title').innerHTML = RESULT_CARD_TITLE_HTML + badge;
 
             switchTab('formatted');
             section.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1404,6 +1505,7 @@
         function showResults(data, model) {
             const section = document.getElementById('resultsSection');
             section.classList.add('visible');
+            document.querySelector('#resultsSection .card-title').innerHTML = RESULT_CARD_TITLE_HTML;
 
             const textAnnotation = data.result?.textAnnotation || data.textAnnotation || {};
 
@@ -1454,8 +1556,7 @@
                 platesTab.style.display = 'none';
             }
 
-            const templateModels = ['passport', 'driver-license-front', 'driver-license-back', 'vehicle-registration-front', 'vehicle-registration-back', 'license-plates'];
-            const isTemplateModel = templateModels.includes(model);
+            const isTemplateModel = modelsData?.template?.some(m => m.id === model) ?? false;
             const formattedTab = document.getElementById('formattedTab');
 
             if (isTemplateModel) {
@@ -1495,6 +1596,23 @@
             } else {
                 document.getElementById('jsonTab').classList.add('active');
                 document.getElementById('panelJson').classList.add('active');
+            }
+        }
+
+        async function copyResult() {
+            const activePanel = document.querySelector('.result-panel.active');
+            const text = activePanel?.querySelector('pre, .result-text')?.textContent || '';
+            if (!text) return;
+            try {
+                await navigator.clipboard.writeText(text);
+                const btn = document.getElementById('btnCopy');
+                btn.classList.add('copied');
+                btn.querySelector('span, :last-child') || btn;
+                const orig = btn.innerHTML;
+                btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Скопировано`;
+                setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
+            } catch {
+                // clipboard not available (non-https)
             }
         }
 
