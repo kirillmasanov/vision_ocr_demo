@@ -105,7 +105,7 @@
         }
 
         .container {
-            max-width: 920px;
+            max-width: 1040px;
             margin: 0 auto;
             padding: 36px 24px 48px;
         }
@@ -137,9 +137,161 @@
             text-decoration: underline;
         }
 
-        .page-description a svg {
+        /* Two-column layout */
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (min-width: 960px) {
+            .layout-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 24px;
+            }
+            .layout-right {
+                position: sticky;
+                top: 68px;
+            }
+        }
+
+        /* Empty state (right column on desktop before first recognition) */
+        .empty-state {
+            display: none;
+        }
+
+        @media (min-width: 960px) {
+            .empty-state:not(.hidden) {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 14px;
+                text-align: center;
+                padding: 56px 24px;
+                background: var(--yc-color-base-float);
+                border: 1.5px dashed var(--yc-color-line-generic);
+                border-radius: var(--yc-border-radius-l);
+                color: var(--yc-color-text-hint);
+                min-height: 260px;
+            }
+        }
+
+        .empty-state svg {
+            opacity: 0.35;
+        }
+
+        .empty-state p {
+            font-size: 13px;
+            line-height: 1.55;
+            max-width: 180px;
+        }
+
+        /* Model description */
+        .model-description {
+            font-size: 13px;
+            color: var(--yc-color-text-secondary);
+            line-height: 1.55;
+            padding: 10px 12px;
+            background: var(--yc-color-bg-base);
+            border-radius: var(--yc-border-radius-s);
+            margin-top: 8px;
+            border: 1px solid var(--yc-color-line-generic);
+        }
+
+        /* Result badges */
+        .result-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 4px;
             vertical-align: middle;
-            margin-left: 2px;
+            margin-left: 6px;
+        }
+
+        .result-badge-model {
+            color: var(--yc-color-text-hint);
+            background: var(--yc-color-bg-base);
+            font-family: ui-monospace, monospace;
+            border: 1px solid var(--yc-color-line-generic);
+            font-weight: 500;
+        }
+
+        .result-badge-pages {
+            color: var(--yc-color-base-brand);
+            background: var(--yc-color-base-brand-light);
+        }
+
+        /* Skeleton loader for samples */
+        @keyframes shimmer {
+            0%   { background-position: -200% 0; }
+            100% { background-position:  200% 0; }
+        }
+
+        .sample-skeleton {
+            background: linear-gradient(90deg, #eef0f3 25%, #e2e5e9 50%, #eef0f3 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s ease infinite;
+            cursor: default;
+            pointer-events: none;
+            border-color: transparent !important;
+        }
+
+        /* Page navigation for multi-page PDFs */
+        .page-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+            background: var(--yc-color-bg-base);
+            border: 1px solid var(--yc-color-line-generic);
+            border-radius: var(--yc-border-radius);
+        }
+
+        .page-nav-btn {
+            padding: 4px 12px;
+            background: var(--yc-color-base-float);
+            border: 1px solid var(--yc-color-line-generic);
+            border-radius: var(--yc-border-radius-s);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            color: var(--yc-color-text-secondary);
+            transition: all 0.15s;
+            line-height: 1.5;
+        }
+
+        .page-nav-btn:hover:not(:disabled) {
+            border-color: var(--yc-color-base-brand);
+            color: var(--yc-color-base-brand);
+        }
+
+        .page-nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .page-nav-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--yc-color-text-secondary);
+            min-width: 64px;
+            text-align: center;
+        }
+
+        /* Animations */
+        @keyframes dropdownIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to   { opacity: 1; transform: translateY(0);    }
+        }
+
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0);    }
         }
 
         .mode-selector {
@@ -303,6 +455,7 @@
 
         .model-select-dropdown.open {
             display: block;
+            animation: dropdownIn 0.13s ease;
         }
 
         .model-select-option {
@@ -354,8 +507,8 @@
 
         .samples-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
             margin-bottom: 20px;
         }
 
@@ -525,6 +678,7 @@
 
         .results-section.visible {
             display: block;
+            animation: fadeSlideIn 0.22s ease;
         }
 
         .result-tabs {
@@ -768,7 +922,7 @@
         }
 
         .footer-inner {
-            max-width: 920px;
+            max-width: 1040px;
             margin: 0 auto;
             display: flex;
             align-items: center;
@@ -863,6 +1017,7 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            flex-shrink: 0;
         }
 
         .btn-copy:hover {
@@ -875,38 +1030,12 @@
             color: var(--yc-color-base-positive);
         }
 
-        .result-card-actions {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-
-        .result-card-actions .result-tabs {
-            margin-bottom: 0;
-            flex: 1;
-            border-bottom: none;
-        }
-
         .result-tabs-wrap {
             border-bottom: 1px solid var(--yc-color-line-generic);
             margin-bottom: 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-        }
-
-        .result-page-header {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--yc-color-text-hint);
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin: 12px 0 4px;
-        }
-
-        .result-page-header:first-child {
-            margin-top: 0;
         }
 
         @media (max-width: 640px) {
@@ -917,7 +1046,7 @@
                 padding: 20px 16px;
             }
             .samples-grid {
-                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
             }
             .header {
                 padding: 0 16px;
@@ -949,140 +1078,169 @@
         <h1 class="page-title">Распознавание текста</h1>
         <p class="page-description">Выберите тип модели, загрузите изображение и получите результат распознавания</p>
 
-        <!-- Step 1: Mode selection -->
-        <div class="mode-selector">
-            <button class="mode-btn" data-mode="text" onclick="selectMode('text')">
-                <div class="mode-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div class="layout-grid">
+            <!-- Left column: form -->
+            <div class="layout-left">
+
+                <!-- Step 1: Mode selection -->
+                <div class="mode-selector">
+                    <button class="mode-btn" data-mode="text" onclick="selectMode('text')">
+                        <div class="mode-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                <polyline points="10 9 9 9 8 9"/>
+                            </svg>
+                        </div>
+                        Модели для распознавания текста
+                    </button>
+                    <button class="mode-btn" data-mode="template" onclick="selectMode('template')">
+                        <div class="mode-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="16" rx="2"/>
+                                <line x1="7" y1="8" x2="17" y2="8"/>
+                                <line x1="7" y1="12" x2="13" y2="12"/>
+                                <line x1="7" y1="16" x2="10" y2="16"/>
+                            </svg>
+                        </div>
+                        Модели для распознавания шаблонных документов
+                    </button>
+                </div>
+
+                <!-- Step 2: Model selection & config -->
+                <div id="modelSection" class="card hidden">
+                    <div class="form-group">
+                        <label class="form-label" for="modelSelectTrigger">Модель</label>
+                        <div class="model-select-wrap">
+                            <button type="button" class="model-select-trigger" id="modelSelectTrigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="modelSelectTrigger">
+                                <span class="model-select-label" id="modelSelectLabel">— Выберите модель —</span>
+                                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="model-select-dropdown" id="modelSelectDropdown" role="listbox"></div>
+                            <select id="modelSelect" class="form-select" aria-hidden="true" tabindex="-1"></select>
+                        </div>
+                        <div id="modelDescription" class="model-description hidden"></div>
+                    </div>
+
+                    <!-- Samples -->
+                    <div id="samplesSection" class="hidden">
+                        <label class="form-label">Тестовые примеры</label>
+                        <div id="samplesGrid" class="samples-grid"></div>
+                        <div id="noSamples" class="no-samples hidden">
+                            Тестовые изображения пока не загружены. Добавьте файлы в соответствующую папку static/&lt;модель&gt;/
+                        </div>
+                    </div>
+
+                    <div class="or-divider">или загрузите свой файл</div>
+
+                    <div id="asyncNotice" class="async-notice">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Многостраничный PDF распознаётся асинхронно — до 200 страниц, результат за несколько секунд
+                    </div>
+
+                    <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                        <div class="upload-icon">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                        </div>
+                        <div class="upload-text"><strong>Нажмите для загрузки</strong> или перетащите файл сюда</div>
+                        <div class="upload-hint">JPEG, PNG или PDF (макс. 10 МБ)</div>
+                        <div class="upload-filename" id="uploadFilename">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                            <span id="uploadFileText"></span>
+                        </div>
+                    </div>
+                    <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.pdf" style="display:none" onchange="onFileSelected(event)">
+
+                    <div id="imagePreview" class="image-preview-container">
+                        <img id="previewImg" class="image-preview" alt="Preview">
+                    </div>
+
+                    <button class="btn-recognize" id="btnRecognize" onclick="recognize()" disabled>
+                        <div class="spinner"></div>
+                        <span class="btn-text">Распознать</span>
+                    </button>
+                    <div id="recognizeStatus" class="recognize-status"></div>
+                    <button class="btn-cancel" id="btnCancel" onclick="cancelAsync()">Отменить</button>
+                </div>
+
+                <!-- Error -->
+                <div id="errorMessage" class="error-message"></div>
+
+            </div><!-- end layout-left -->
+
+            <!-- Right column: results -->
+            <div class="layout-right">
+
+                <!-- Empty state (shown on desktop before first recognition) -->
+                <div id="emptyState" class="empty-state">
+                    <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                         <polyline points="14 2 14 8 20 8"/>
-                        <line x1="16" y1="13" x2="8" y2="13"/>
-                        <line x1="16" y1="17" x2="8" y2="17"/>
-                        <polyline points="10 9 9 9 8 9"/>
+                        <line x1="8" y1="13" x2="16" y2="13"/>
+                        <line x1="8" y1="17" x2="13" y2="17"/>
                     </svg>
-                </div>
-                Модели для распознавания текста
-            </button>
-            <button class="mode-btn" data-mode="template" onclick="selectMode('template')">
-                <div class="mode-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="4" width="18" height="16" rx="2"/>
-                        <line x1="7" y1="8" x2="17" y2="8"/>
-                        <line x1="7" y1="12" x2="13" y2="12"/>
-                        <line x1="7" y1="16" x2="10" y2="16"/>
-                    </svg>
-                </div>
-                Модели для распознавания шаблонных документов
-            </button>
-        </div>
-
-        <!-- Step 2: Model selection & config -->
-        <div id="modelSection" class="card hidden">
-            <div class="form-group">
-                <label class="form-label" for="modelSelectTrigger">Модель</label>
-                <div class="model-select-wrap">
-                    <button type="button" class="model-select-trigger" id="modelSelectTrigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="modelSelectTrigger">
-                        <span class="model-select-label" id="modelSelectLabel">— Выберите модель —</span>
-                        <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                    </button>
-                    <div class="model-select-dropdown" id="modelSelectDropdown" role="listbox"></div>
-                    <select id="modelSelect" class="form-select" aria-hidden="true" tabindex="-1"></select>
-                </div>
-            </div>
-
-            <!-- Samples -->
-            <div id="samplesSection" class="hidden">
-                <label class="form-label">Тестовые примеры</label>
-                <div id="samplesGrid" class="samples-grid"></div>
-                <div id="noSamples" class="no-samples hidden">
-                    Тестовые изображения пока не загружены. Добавьте файлы в соответствующую папку static/&lt;модель&gt;/
-                </div>
-            </div>
-
-            <div class="or-divider">или загрузите свой файл</div>
-
-            <div id="asyncNotice" class="async-notice">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                Многостраничный PDF распознаётся асинхронно — до 200 страниц, результат за несколько секунд
-            </div>
-
-            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
-                <div class="upload-icon">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="17 8 12 3 7 8"/>
-                        <line x1="12" y1="3" x2="12" y2="15"/>
-                    </svg>
-                </div>
-                <div class="upload-text"><strong>Нажмите для загрузки</strong> или перетащите файл сюда</div>
-                <div class="upload-hint">JPEG, PNG или PDF (макс. 10 МБ)</div>
-                <div class="upload-filename" id="uploadFilename">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                    <span id="uploadFileText"></span>
-                </div>
-            </div>
-            <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.pdf" style="display:none" onchange="onFileSelected(event)">
-
-            <div id="imagePreview" class="image-preview-container">
-                <img id="previewImg" class="image-preview" alt="Preview">
-            </div>
-
-            <button class="btn-recognize" id="btnRecognize" onclick="recognize()" disabled>
-                <div class="spinner"></div>
-                <span class="btn-text">Распознать</span>
-            </button>
-            <div id="recognizeStatus" class="recognize-status"></div>
-            <button class="btn-cancel" id="btnCancel" onclick="cancelAsync()">Отменить</button>
-        </div>
-
-        <!-- Error -->
-        <div id="errorMessage" class="error-message"></div>
-
-        <!-- Results -->
-        <div id="resultsSection" class="results-section">
-            <div class="card">
-                <div class="card-title">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-                    </svg>
-                    Результат распознавания
+                    <p>Выберите модель и загрузите файл, чтобы увидеть результат</p>
                 </div>
 
-                <div class="result-tabs-wrap">
-                    <div class="result-tabs">
-                        <button class="result-tab active" id="formattedTab" onclick="switchTab('formatted')">Результат</button>
-                        <button class="result-tab" onclick="switchTab('entities')" id="entitiesTabBtn" style="display:none">Поля документа</button>
-                        <button class="result-tab" onclick="switchTab('plates')" id="platesTab" style="display:none">Распознанные номера</button>
-                        <button class="result-tab" onclick="switchTab('json')" id="jsonTab">JSON</button>
+                <!-- Results -->
+                <div id="resultsSection" class="results-section">
+                    <div class="card">
+                        <div class="card-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                            </svg>
+                            Результат распознавания
+                        </div>
+
+                        <div class="result-tabs-wrap">
+                            <div class="result-tabs">
+                                <button class="result-tab active" id="formattedTab" onclick="switchTab('formatted')">Результат</button>
+                                <button class="result-tab" onclick="switchTab('entities')" id="entitiesTabBtn" style="display:none">Поля документа</button>
+                                <button class="result-tab" onclick="switchTab('plates')" id="platesTab" style="display:none">Распознанные номера</button>
+                                <button class="result-tab" onclick="switchTab('json')" id="jsonTab">JSON</button>
+                            </div>
+                            <button class="btn-copy" id="btnCopy" onclick="copyResult()">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                Копировать
+                            </button>
+                        </div>
+
+                        <div id="panelFormatted" class="result-panel active">
+                            <div id="pageNav" class="page-nav hidden">
+                                <button class="page-nav-btn" id="pageNavPrev" onclick="prevPage()">&#8592;</button>
+                                <span class="page-nav-label">стр. <span id="pageNavCurrent">1</span> / <span id="pageNavTotal">1</span></span>
+                                <button class="page-nav-btn" id="pageNavNext" onclick="nextPage()">&#8594;</button>
+                            </div>
+                            <div class="result-text" id="resultText"></div>
+                        </div>
+
+                        <div id="panelEntities" class="result-panel">
+                            <table class="entities-table" id="entitiesTable">
+                                <thead>
+                                    <tr><th>Поле</th><th>Значение</th></tr>
+                                </thead>
+                                <tbody id="entitiesBody"></tbody>
+                            </table>
+                        </div>
+
+                        <div id="panelPlates" class="result-panel">
+                            <ul class="plates-list" id="platesList"></ul>
+                        </div>
+
+                        <div id="panelJson" class="result-panel">
+                            <pre class="result-json" id="resultJson"></pre>
+                        </div>
                     </div>
-                    <button class="btn-copy" id="btnCopy" onclick="copyResult()">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                        Копировать
-                    </button>
                 </div>
 
-                <div id="panelFormatted" class="result-panel active">
-                    <div class="result-text" id="resultText"></div>
-                </div>
-
-                <div id="panelEntities" class="result-panel">
-                    <table class="entities-table" id="entitiesTable">
-                        <thead>
-                            <tr><th>Поле</th><th>Значение</th></tr>
-                        </thead>
-                        <tbody id="entitiesBody"></tbody>
-                    </table>
-                </div>
-
-                <div id="panelPlates" class="result-panel">
-                    <ul class="plates-list" id="platesList"></ul>
-                </div>
-
-                <div id="panelJson" class="result-panel">
-                    <pre class="result-json" id="resultJson"></pre>
-                </div>
-            </div>
-        </div>
+            </div><!-- end layout-right -->
+        </div><!-- end layout-grid -->
     </div>
 
     <footer class="footer">
@@ -1110,12 +1268,19 @@
         let selectedSample = null;
         let uploadedFile = null;
         let asyncCancelled = false;
+        let currentPages = [];
+        let currentPageIndex = 0;
+        let lastUsedModel = null;
 
-        const RESULT_CARD_TITLE_HTML = `
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-            </svg>
-            Результат распознавания`;
+        function _setCardTitle(model, pageCount) {
+            const svg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`;
+            const pageBadge = pageCount > 1
+                ? `<span class="result-badge result-badge-pages">${pageCount} стр.</span>` : '';
+            const modelBadge = model
+                ? `<span class="result-badge result-badge-model">${escapeHtml(model)}</span>` : '';
+            document.querySelector('#resultsSection .card-title').innerHTML =
+                `${svg} Результат распознавания${pageBadge}${modelBadge}`;
+        }
 
         async function loadModels() {
             const resp = await fetch('api/models');
@@ -1154,6 +1319,7 @@
 
             label.textContent = '— Выберите модель —';
             label.classList.add('placeholder');
+            document.getElementById('modelDescription').classList.add('hidden');
 
             const models = mode === 'text' ? modelsData.text : modelsData.template;
             models.forEach(m => {
@@ -1205,8 +1371,20 @@
 
             if (!model) {
                 document.getElementById('samplesSection').classList.add('hidden');
+                document.getElementById('modelDescription').classList.add('hidden');
                 updateRecognizeBtn();
                 return;
+            }
+
+            // Show model description
+            const allModels = [...(modelsData?.text || []), ...(modelsData?.template || [])];
+            const modelInfo = allModels.find(m => m.id === model);
+            const descEl = document.getElementById('modelDescription');
+            if (modelInfo?.description) {
+                descEl.textContent = modelInfo.description;
+                descEl.classList.remove('hidden');
+            } else {
+                descEl.classList.add('hidden');
             }
 
             await loadSamples(model);
@@ -1222,10 +1400,21 @@
             const noSamples = document.getElementById('noSamples');
 
             section.classList.remove('hidden');
+            noSamples.classList.add('hidden');
+            grid.classList.remove('hidden');
+
+            // Show skeleton placeholders while loading
             grid.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                const sk = document.createElement('div');
+                sk.className = 'sample-item sample-skeleton';
+                grid.appendChild(sk);
+            }
 
             const resp = await fetch(`api/samples/${model}`);
             const data = await resp.json();
+
+            grid.innerHTML = '';
 
             if (data.samples.length === 0) {
                 noSamples.classList.remove('hidden');
@@ -1473,46 +1662,60 @@
             }
         }
 
+        // Page navigation for multi-page PDFs
+        function showPage(idx) {
+            currentPageIndex = idx;
+            const ta = currentPages[idx]?.result?.textAnnotation || currentPages[idx]?.textAnnotation || {};
+            const text = (ta.markdown || ta.fullText || '').trim() || 'Текст не распознан';
+            document.getElementById('resultText').textContent = text;
+            document.getElementById('pageNavCurrent').textContent = idx + 1;
+            document.getElementById('pageNavPrev').disabled = idx === 0;
+            document.getElementById('pageNavNext').disabled = idx === currentPages.length - 1;
+        }
+
+        function prevPage() { if (currentPageIndex > 0) showPage(currentPageIndex - 1); }
+        function nextPage() { if (currentPageIndex < currentPages.length - 1) showPage(currentPageIndex + 1); }
+
         function showResultsMultiPage(pages, model) {
+            lastUsedModel = model;
+            currentPages = pages;
+            currentPageIndex = 0;
+
             const section = document.getElementById('resultsSection');
             section.classList.add('visible');
+            document.getElementById('emptyState').classList.add('hidden');
+            _setCardTitle(model, pages.length);
 
-            let combinedText = '';
-            const multiPage = pages.length > 1;
-            pages.forEach((page, idx) => {
-                const ta = page.result?.textAnnotation || page.textAnnotation || {};
-                const text = (ta.markdown || ta.fullText || '').trim();
-                if (multiPage) {
-                    combinedText += `― Страница ${ta.pageNumber || (idx + 1)} ―\n${text}\n\n`;
-                } else {
-                    combinedText = text;
-                }
-            });
-
-            document.getElementById('resultText').textContent = combinedText.trim() || 'Текст не распознан';
             document.getElementById('entitiesTabBtn').style.display = 'none';
             document.getElementById('platesTab').style.display = 'none';
             document.getElementById('formattedTab').style.display = '';
             document.getElementById('resultJson').textContent = JSON.stringify(pages, null, 2);
 
-            const pageCount = pages.length;
-            const badge = pageCount > 1
-                ? `<span style="margin-left:8px;font-size:12px;font-weight:500;color:var(--yc-color-base-brand);background:var(--yc-color-base-brand-light);padding:2px 8px;border-radius:4px;">${pageCount} стр.</span>`
-                : '';
-            document.querySelector('#resultsSection .card-title').innerHTML = RESULT_CARD_TITLE_HTML + badge;
+            // Setup page navigation
+            const pageNav = document.getElementById('pageNav');
+            if (pages.length > 1) {
+                document.getElementById('pageNavTotal').textContent = pages.length;
+                pageNav.classList.remove('hidden');
+            } else {
+                pageNav.classList.add('hidden');
+            }
 
+            showPage(0);
             switchTab('formatted');
             section.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         function showResults(data, model) {
+            lastUsedModel = model;
+            currentPages = [];
             const section = document.getElementById('resultsSection');
             section.classList.add('visible');
-            document.querySelector('#resultsSection .card-title').innerHTML = RESULT_CARD_TITLE_HTML;
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('pageNav').classList.add('hidden');
+            _setCardTitle(model, 1);
 
             const textAnnotation = data.result?.textAnnotation || data.textAnnotation || {};
 
-            // Full text
             const fullText = textAnnotation.fullText || '';
             const markdown = textAnnotation.markdown || '';
             const displayText = markdown || fullText || 'Текст не распознан';
@@ -1535,10 +1738,9 @@
                 entitiesTabBtn.style.display = 'none';
             }
 
-            // JSON
             document.getElementById('resultJson').textContent = JSON.stringify(data, null, 2);
 
-            // Распознанные номера (для модели license-plates)
+            // License plates
             const platesList = document.getElementById('platesList');
             const platesTab = document.getElementById('platesTab');
             const blocks = textAnnotation.blocks || [];
@@ -1581,6 +1783,7 @@
         function hideResults() {
             document.getElementById('resultsSection').classList.remove('visible');
             document.getElementById('errorMessage').classList.remove('visible');
+            document.getElementById('emptyState').classList.remove('hidden');
         }
 
         function switchTab(tab) {
@@ -1609,9 +1812,8 @@
             try {
                 await navigator.clipboard.writeText(text);
                 const btn = document.getElementById('btnCopy');
-                btn.classList.add('copied');
-                btn.querySelector('span, :last-child') || btn;
                 const orig = btn.innerHTML;
+                btn.classList.add('copied');
                 btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Скопировано`;
                 setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
             } catch {
